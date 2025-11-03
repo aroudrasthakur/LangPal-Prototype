@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "LangPal",
+    "slug": "langpal-prototype",
+    "version": "1.0.0",
+    "scheme": "langpal",
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/langpal-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.aroudrasthakur.langpal"
+    },
+    "ios": {
+      "bundleIdentifier": "com.aroudrasthakur.langpal"
+    },
+    "plugins": [
+      "expo-web-browser"
+    ]
+  }
+}
