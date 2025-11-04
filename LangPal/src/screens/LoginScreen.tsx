@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,13 @@ import {
   Platform,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 export default function LoginScreen() {
   const auth = useAuth();
+  const { theme } = useTheme();
   const [isSignup, setIsSignup] = useState(false);
 
   // signup steps
@@ -28,18 +30,6 @@ export default function LoginScreen() {
 
   // signup password
   const [signupPassword, setSignupPassword] = useState("");
-
-  useEffect(() => {
-    if (signupPassword) {
-      console.warn("signupPassword changed length=", signupPassword.length);
-    }
-  }, [signupPassword]);
-
-  useEffect(() => {
-    if (loginPassword) {
-      console.warn("loginPassword changed length=", loginPassword.length);
-    }
-  }, [loginPassword]);
 
   // signup extra fields
   const [firstName, setFirstName] = useState("");
@@ -55,6 +45,12 @@ export default function LoginScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   const [usernameError, setUsernameError] = useState("");
+
+  // Memoize styles to prevent recreation on every render
+  const styles = React.useMemo(
+    () => createStyles(theme.colors),
+    [theme.colors]
+  );
 
   const pickImage = async () => {
     try {
@@ -119,10 +115,11 @@ export default function LoginScreen() {
     }
   };
 
-  const SignupStep1 = () => (
+  const renderSignupStep1 = () => (
     <>
       <Text style={styles.label}>Choose a username</Text>
       <TextInput
+        key="username-input"
         style={[
           styles.input,
           usernameError ? { borderColor: "#ff3b30" } : null,
@@ -134,10 +131,9 @@ export default function LoginScreen() {
         }}
         placeholder="Username"
         autoCapitalize="none"
-        autoComplete="off"
+        autoComplete="username-new"
         autoCorrect={false}
-        textContentType="none"
-        importantForAutofill="no"
+        textContentType="username"
       />
       {usernameError ? (
         <Text style={styles.errorText}>{usernameError}</Text>
@@ -145,31 +141,28 @@ export default function LoginScreen() {
 
       <Text style={styles.label}>Create a password</Text>
       <TextInput
+        key="signup-password-input"
         style={styles.input}
         value={signupPassword}
         onChangeText={setSignupPassword}
         secureTextEntry
         placeholder="Password"
-        textContentType="none"
-        autoComplete="off"
-        importantForAutofill="no"
+        textContentType="newPassword"
+        autoComplete="password-new"
         autoCapitalize="none"
-        blurOnSubmit={false}
-        passwordRules=""
       />
 
       <Text style={styles.label}>Confirm password</Text>
       <TextInput
+        key="confirm-password-input"
         style={styles.input}
         value={confirm}
         onChangeText={setConfirm}
         secureTextEntry
         placeholder="Confirm password"
-        textContentType="none"
-        autoComplete="off"
-        importantForAutofill="no"
+        textContentType="newPassword"
+        autoComplete="password-new"
         autoCapitalize="none"
-        blurOnSubmit={false}
       />
 
       <TouchableOpacity
@@ -195,38 +188,53 @@ export default function LoginScreen() {
     </>
   );
 
-  const SignupStep2 = () => (
+  const renderSignupStep2 = () => (
     <>
       <Text style={styles.label}>Tell us about yourself</Text>
       <TextInput
+        key="first-name-input"
         style={styles.input}
         value={firstName}
         onChangeText={setFirstName}
         placeholder="First name"
+        autoComplete="given-name"
+        textContentType="givenName"
       />
       <TextInput
+        key="last-name-input"
         style={styles.input}
         value={lastName}
         onChangeText={setLastName}
         placeholder="Last name"
+        autoComplete="family-name"
+        textContentType="familyName"
       />
       <TextInput
+        key="dob-input"
         style={styles.input}
         value={dob}
         onChangeText={setDob}
         placeholder="Date of birth (YYYY-MM-DD)"
+        autoComplete="birthdate-full"
+        textContentType="none"
       />
       <TextInput
+        key="native-lang-input"
         style={styles.input}
         value={nativeLang}
         onChangeText={setNativeLang}
         placeholder="Language you speak"
+        autoComplete="off"
+        textContentType="none"
       />
       <TextInput
+        key="learning-lang-input"
         style={styles.input}
         value={learning}
         onChangeText={setLearning}
         placeholder="Language you want to learn"
+        autoComplete="off"
+        textContentType="none"
       />
       <TouchableOpacity
         style={styles.button}
@@ -249,7 +257,7 @@ export default function LoginScreen() {
     </>
   );
 
-  const SignupStep3 = () => (
+  const renderSignupStep3 = () => (
     <>
       <Text style={styles.label}>Your identity</Text>
       <View style={styles.radioGroup}>
@@ -267,6 +275,7 @@ export default function LoginScreen() {
         ))}
       </View>
       <TextInput
+        key="pronouns-input"
         style={styles.input}
         value={pronouns}
         onChangeText={setPronouns}
@@ -293,7 +302,7 @@ export default function LoginScreen() {
     </>
   );
 
-  const SignupStep4 = () => (
+  const renderSignupStep4 = () => (
     <>
       <Text style={styles.label}>Choose your avatar</Text>
       <View style={styles.avatarPreview}>
@@ -367,11 +376,9 @@ export default function LoginScreen() {
                 onChangeText={setUsername}
                 placeholder="Username"
                 autoCapitalize="none"
-                autoComplete="off"
+                autoComplete="username"
                 autoCorrect={false}
-                textContentType="none"
-                importantForAutofill="no"
-                blurOnSubmit={false}
+                textContentType="username"
               />
               <TextInput
                 style={styles.input}
@@ -379,11 +386,9 @@ export default function LoginScreen() {
                 onChangeText={setLoginPassword}
                 secureTextEntry
                 placeholder="Password"
-                autoComplete="off"
-                textContentType="none"
-                importantForAutofill="no"
+                autoComplete="current-password"
+                textContentType="password"
                 autoCapitalize="none"
-                blurOnSubmit={false}
               />
               <TouchableOpacity style={styles.button} onPress={onLogin}>
                 <Text style={styles.buttonText}>Log in</Text>
@@ -391,10 +396,10 @@ export default function LoginScreen() {
             </View>
           ) : (
             <View key={`signup-${step}`}>
-              {step === 1 && <SignupStep1 />}
-              {step === 2 && <SignupStep2 />}
-              {step === 3 && <SignupStep3 />}
-              {step === 4 && <SignupStep4 />}
+              {step === 1 && renderSignupStep1()}
+              {step === 2 && renderSignupStep2()}
+              {step === 3 && renderSignupStep3()}
+              {step === 4 && renderSignupStep4()}
             </View>
           )}
 
@@ -422,150 +427,152 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#f5f5f5",
-  },
-  card: {
-    width: "100%",
-    maxWidth: 420,
-    padding: 24,
-    borderRadius: 16,
-    backgroundColor: "white",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 24,
-    alignSelf: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 24,
-    textAlign: "center",
-    color: "#333",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#555",
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: "#e0e0e0",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 16,
-    backgroundColor: "#f8f8f8",
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  secondaryButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: "#007AFF",
-  },
-  secondaryButtonText: {
-    color: "#007AFF",
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 16,
-  },
-  linkButton: {
-    backgroundColor: "transparent",
-    marginTop: 8,
-  },
-  linkButtonText: {
-    color: "#007AFF",
-    fontWeight: "500",
-    textAlign: "center",
-    fontSize: 15,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: 24,
-  },
-  radioGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 16,
-  },
-  radioButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: "#e0e0e0",
-    backgroundColor: "#f8f8f8",
-  },
-  radioButtonSelected: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
-  },
-  radioButtonText: {
-    color: "#555",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  avatarPreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f0f0f0",
-    alignSelf: "center",
-    marginBottom: 16,
-    overflow: "hidden",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-  },
-  avatarPlaceholder: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarPlaceholderText: {
-    fontSize: 32,
-    color: "#999",
-  },
-  avatarButtons: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
-  },
-  buttonHalf: {
-    flex: 1,
-  },
-  errorText: {
-    color: "#ff3b30",
-    fontSize: 12,
-    marginTop: -8,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    card: {
+      width: "100%",
+      maxWidth: 420,
+      padding: 24,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    logo: {
+      width: 120,
+      height: 120,
+      marginBottom: 24,
+      alignSelf: "center",
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      marginBottom: 24,
+      textAlign: "center",
+      color: colors.text,
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: "600",
+      marginBottom: 8,
+      color: colors.text,
+    },
+    input: {
+      borderWidth: 1.5,
+      borderColor: colors.muted,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 16,
+      fontSize: 16,
+      backgroundColor: colors.background,
+      color: colors.text,
+    },
+    button: {
+      backgroundColor: colors.primary,
+      paddingVertical: 14,
+      borderRadius: 8,
+      marginBottom: 12,
+    },
+    buttonText: {
+      color: "white",
+      fontWeight: "600",
+      textAlign: "center",
+      fontSize: 16,
+    },
+    secondaryButton: {
+      backgroundColor: "transparent",
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+    },
+    secondaryButtonText: {
+      color: colors.primary,
+      fontWeight: "600",
+      textAlign: "center",
+      fontSize: 16,
+    },
+    linkButton: {
+      backgroundColor: "transparent",
+      marginTop: 8,
+    },
+    linkButtonText: {
+      color: colors.primary,
+      fontWeight: "500",
+      textAlign: "center",
+      fontSize: 15,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.muted,
+      marginVertical: 24,
+    },
+    radioGroup: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 16,
+    },
+    radioButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: colors.muted,
+      backgroundColor: colors.background,
+    },
+    radioButtonSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    radioButtonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    avatarPreview: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.background,
+      alignSelf: "center",
+      marginBottom: 16,
+      overflow: "hidden",
+    },
+    avatarImage: {
+      width: "100%",
+      height: "100%",
+    },
+    avatarPlaceholder: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarPlaceholderText: {
+      fontSize: 32,
+      color: colors.muted,
+    },
+    avatarButtons: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 24,
+    },
+    buttonHalf: {
+      flex: 1,
+    },
+    errorText: {
+      color: "#ff3b30",
+      fontSize: 12,
+      marginTop: -8,
+      marginBottom: 8,
+      marginLeft: 4,
+    },
+  });

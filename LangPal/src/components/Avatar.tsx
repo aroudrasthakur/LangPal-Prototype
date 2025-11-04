@@ -28,7 +28,7 @@ export default function Avatar({ name, gender, size = 56, uri }: Props) {
   if (uri) {
     return (
       <Image
-        source={uri}
+        source={typeof uri === "string" ? { uri } : uri}
         style={[
           styles.avatar,
           { width: size, height: size, borderRadius: size / 2 },

@@ -40,3 +40,41 @@ app-example
 # generated native folders
 /ios
 /android
+
+# OS-specific
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.iml
+
+# Caches
+.cache/
+.metro-cache/
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Lint/cache
+.eslintcache
+
+# Environment files
+.env
+.env.*
+
+# Expo/EAS local state
+.eas/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo

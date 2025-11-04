@@ -11,7 +11,7 @@ export default function PartnerCard({
   partner: Partner;
   onPress: () => void;
 }) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const styles = createStyles(theme.colors);
 
   return (
@@ -34,7 +34,16 @@ export default function PartnerCard({
               partner.status === "Online" ? styles.online : styles.recent,
             ]}
           >
-            <Text style={styles.statusText}>{partner.status}</Text>
+            <Text
+              style={[
+                styles.statusText,
+                partner.status === "Recently Active" && isDark
+                  ? { color: "#000000" }
+                  : null,
+              ]}
+            >
+              {partner.status}
+            </Text>
           </View>
         </View>
       </View>

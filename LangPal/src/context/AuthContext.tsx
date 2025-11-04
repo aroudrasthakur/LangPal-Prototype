@@ -33,7 +33,11 @@ type AuthContextValue = {
     password: string
   ) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   usernameAvailable: (username: string) => boolean;
+  updateCurrentUser: (
+    patch: Partial<Omit<User, "username" | "password">>
+  ) => Promise<void>;
 };
 
 const USERS_KEY = "LP_USERS_V1";
@@ -113,6 +117,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await persistCurrent(null);
   };
 
+  const deleteAccount = async () => {
+    if (!currentUser) return;
+    const userId = currentUser.id;
+    try {
+      // Remove all chat histories that include this user's id
+      const allKeys = await AsyncStorage.getAllKeys();
+      const chatKeysToRemove = allKeys.filter((k) => {
+        if (!k.startsWith("chat-")) return false;
+        const ids = k.replace("chat-", "").split("-");
+        return ids.includes(userId);
+      });
+      if (chatKeysToRemove.length) {
+        await AsyncStorage.multiRemove(chatKeysToRemove);
+      }
+
+      // Remove the user from the users list (so they no longer appear as a partner)
+      const nextUsers = users.filter((u) => u.id !== userId);
+      await persistUsers(nextUsers);
+
+      // Clear current session
+      await persistCurrent(null);
+    } catch {
+      // ignore minimal failures, as this is a best-effort cleanup
+    }
+  };
+
+  const updateCurrentUser: AuthContextValue["updateCurrentUser"] = async (
+    patch
+  ) => {
+    if (!currentUser) return;
+    // Ensure username/password cannot be changed through this method
+    const { username: _u, password: _p, ...rest } = patch as any;
+    const nextCurrent = { ...currentUser, ...rest } as User;
+    // Update users array
+    const nextUsers = users.map((u) =>
+      u.id === currentUser.id ? nextCurrent : u
+    );
+    await persistUsers(nextUsers);
+    await persistCurrent(nextCurrent);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -122,7 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         login,
         logout,
+        deleteAccount,
         usernameAvailable,
+        updateCurrentUser,
       }}
     >
       {children}

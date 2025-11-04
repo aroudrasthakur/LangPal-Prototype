@@ -6,6 +6,7 @@ import {
   Switch,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { useTheme } from "../src/context/ThemeContext";
 import { useAuth } from "../src/context/AuthContext";
@@ -14,15 +15,41 @@ import { router } from "expo-router";
 
 export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, deleteAccount } = useAuth();
   const styles = createStyles(theme.colors);
 
   const onLogout = async () => {
     await logout();
   };
 
+  const onDeleteAccount = async () => {
+    // Confirm destructive action
+    const confirmed = await new Promise<boolean>((resolve) => {
+      // Use the native alert for confirm; fall back to resolve(false) if unsupported
+      Alert.alert(
+        "Delete your account?",
+        "This will remove your credentials and delete your chats. You will also be removed as a partner from other users.",
+        [
+          { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: () => resolve(true),
+          },
+        ]
+      );
+    });
+    if (!confirmed) return;
+    await deleteAccount();
+  };
+
+  React.useEffect(() => {
+    if (!currentUser) {
+      router.replace("/");
+    }
+  }, [currentUser]);
+
   if (!currentUser) {
-    router.replace("/");
     return null;
   }
 
@@ -39,6 +66,12 @@ export default function ProfileScreen() {
           {currentUser.firstName} {currentUser.lastName}
         </Text>
         <Text style={styles.username}>@{currentUser.username}</Text>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => router.push("/editProfile")}
+        >
+          <Text style={styles.editText}>Edit Profile</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -87,6 +120,10 @@ export default function ProfileScreen() {
       <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteButton} onPress={onDeleteAccount}>
+        <Text style={styles.deleteText}>Delete Account</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -128,28 +165,63 @@ const createStyles = (colors: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 12,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.muted,
+      paddingVertical: 14,
+      paddingHorizontal: 12,
+      backgroundColor: colors.card,
+      borderRadius: 8,
+      marginBottom: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
     },
     text: {
       fontSize: 16,
       color: colors.text,
+      fontWeight: "500",
     },
     value: {
       fontSize: 16,
-      color: colors.muted,
+      color: colors.text,
+      fontWeight: "600",
     },
     logoutButton: {
       margin: 16,
       padding: 16,
-      backgroundColor: "#ff3b30",
+      backgroundColor: "#fff",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "#ff3b30",
       borderRadius: 8,
       alignItems: "center",
     },
     logoutText: {
-      color: "white",
+      color: "#ff3b30",
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: "700",
+    },
+    editButton: {
+      marginTop: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+    },
+    editText: {
+      color: "#fff",
+      fontWeight: "700",
+    },
+    deleteButton: {
+      marginHorizontal: 16,
+      marginBottom: 24,
+      padding: 14,
+      backgroundColor: "#B00020",
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    deleteText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "700",
     },
   });

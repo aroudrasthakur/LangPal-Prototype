@@ -12,6 +12,7 @@ import Avatar from "../src/components/Avatar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 // reuse Partner type from src/types if available
 import { Partner } from "../src/types";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Mock partners same source as partners.tsx
 const MOCK_PARTNERS: Partner[] = [
@@ -126,39 +127,48 @@ export default function PartnerProfile() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.top}>
-        <Avatar name={partner.name} gender={partner.gender} size={96} />
-        <Text style={styles.name}>{partner.name}</Text>
-        <Text style={styles.subtitle}>{partner.status}</Text>
-      </View>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.top}>
+          <Avatar name={partner.name} gender={partner.gender} size={96} />
+          <Text style={styles.name}>{partner.name}</Text>
+          <Text style={styles.subtitle}>{partner.status}</Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Languages</Text>
-        <Text style={styles.sectionText}>Native: {partner.native || "—"}</Text>
-        <Text style={styles.sectionText}>
-          Learning: {partner.learning || "—"}
-        </Text>
-      </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Languages</Text>
+          <Text style={styles.sectionText}>
+            Native: {partner.native || "—"}
+          </Text>
+          <Text style={styles.sectionText}>
+            Learning: {partner.learning || "—"}
+          </Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <Text style={styles.sectionText}>
-          {partner.bio || "No bio provided."}
-        </Text>
-      </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionText}>
+            {partner.bio || "No bio provided."}
+          </Text>
+        </View>
 
-      <TouchableOpacity style={styles.chatButton} onPress={startChat}>
-        <Text style={styles.chatButtonText}>Chat with {partner.name}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.chatButton} onPress={startChat}>
+          <Text style={styles.chatButtonText}>Chat with {partner.name}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
-    content: { padding: 24 },
+    safe: { flex: 1, backgroundColor: colors.background },
+    container: { flex: 1 },
+    content: { padding: 24, paddingTop: 32 },
     top: { alignItems: "center", marginBottom: 16 },
     name: {
       fontSize: 20,
