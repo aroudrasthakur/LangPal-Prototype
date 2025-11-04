@@ -267,7 +267,7 @@ This project is a prototype for educational purposes.
 
 ## 👤 Author
 
-**Aroud Rasthakur**
+**Aroudra S Thakur**
 
 - GitHub: [@aroudrasthakur](https://github.com/aroudrasthakur)
 
